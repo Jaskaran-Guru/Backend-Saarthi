@@ -28,7 +28,12 @@ const corsOptions = {
   credentials: true,
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  cookie: {
+    secure: true,            // required for cross-site cookies (Render = HTTPS)
+    sameSite: "none"         // required for cross-site cookies
+  }
+
 };
 app.use(cors(corsOptions));
 
@@ -113,7 +118,7 @@ const isStrongPassword = (password) => {
   const hasLowerCase = /[a-z]/.test(password);
   const hasNumbers = /\d/.test(password);
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-  
+
   return {
     isValid: password.length >= minLength && hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar,
     checks: {
@@ -135,13 +140,13 @@ const calculateEmailDigitsSum = (email) => {
   let totalDigitsSum = 0;
   const allDigits = [];
   const digitCalculations = [];
-  
+
   numbers.forEach(numberGroup => {
     const digits = numberGroup.split('').map(digit => parseInt(digit));
     allDigits.push(...digits);
     const groupSum = digits.reduce((sum, digit) => sum + digit, 0);
     totalDigitsSum += groupSum;
-    
+
     digitCalculations.push({
       numberGroup: numberGroup,
       digits: digits,
@@ -149,7 +154,7 @@ const calculateEmailDigitsSum = (email) => {
       calculation: `${digits.join('+')} = ${groupSum}`
     });
   });
-  
+
   return {
     hasNumbers: numbers.length > 0,
     numberGroups: numbers,
@@ -168,70 +173,70 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: "/api/auth/google/callback"
   },
-  async (accessToken, refreshToken, profile, done) => {
-    try {
-      console.log('🎉 Google OAuth Success:', {
-        id: profile.id,
-        name: profile.displayName,
-        email: profile.emails[0].value
-      });
-
-      // If MongoDB is not connected, return simple user object
-      if (!User) {
-        const user = {
-          googleId: profile.id,
+    async (accessToken, refreshToken, profile, done) => {
+      try {
+        console.log('🎉 Google OAuth Success:', {
+          id: profile.id,
           name: profile.displayName,
-          email: profile.emails[0].value,
-          avatar: profile.photos[0]?.value || '',
-          provider: 'google',
-          loginTime: new Date().toISOString()
-        };
-        return done(null, user);
-      }
-
-      // Check if user already exists in database
-      let user = await User.findOne({ googleId: profile.id });
-
-      if (user) {
-        // Update existing user
-        user.lastLogin = new Date();
-        user.avatar = profile.photos[0]?.value || user.avatar;
-        await user.save();
-        console.log('✅ Existing user logged in:', user.email);
-        return done(null, user);
-      } else {
-        // Check if user exists with same email
-        const existingUser = await User.findOne({ email: profile.emails[0].value });
-        
-        if (existingUser) {
-          // Link Google account to existing user
-          existingUser.googleId = profile.id;
-          existingUser.avatar = profile.photos[0]?.value || existingUser.avatar;
-          existingUser.lastLogin = new Date();
-          existingUser.provider = 'google';
-          await existingUser.save();
-          console.log('✅ Linked Google account to existing user:', existingUser.email);
-          return done(null, existingUser);
-        }
-
-        // Create new user
-        user = await User.create({
-          googleId: profile.id,
-          name: profile.displayName,
-          email: profile.emails[0].value,
-          avatar: profile.photos[0]?.value || '',
-          provider: 'google',
-          lastLogin: new Date()
+          email: profile.emails[0].value
         });
 
-        console.log('✅ New user created in database:', user.email);
-        return done(null, user);
+        // If MongoDB is not connected, return simple user object
+        if (!User) {
+          const user = {
+            googleId: profile.id,
+            name: profile.displayName,
+            email: profile.emails[0].value,
+            avatar: profile.photos[0]?.value || '',
+            provider: 'google',
+            loginTime: new Date().toISOString()
+          };
+          return done(null, user);
+        }
+
+        // Check if user already exists in database
+        let user = await User.findOne({ googleId: profile.id });
+
+        if (user) {
+          // Update existing user
+          user.lastLogin = new Date();
+          user.avatar = profile.photos[0]?.value || user.avatar;
+          await user.save();
+          console.log('✅ Existing user logged in:', user.email);
+          return done(null, user);
+        } else {
+          // Check if user exists with same email
+          const existingUser = await User.findOne({ email: profile.emails[0].value });
+
+          if (existingUser) {
+            // Link Google account to existing user
+            existingUser.googleId = profile.id;
+            existingUser.avatar = profile.photos[0]?.value || existingUser.avatar;
+            existingUser.lastLogin = new Date();
+            existingUser.provider = 'google';
+            await existingUser.save();
+            console.log('✅ Linked Google account to existing user:', existingUser.email);
+            return done(null, existingUser);
+          }
+
+          // Create new user
+          user = await User.create({
+            googleId: profile.id,
+            name: profile.displayName,
+            email: profile.emails[0].value,
+            avatar: profile.photos[0]?.value || '',
+            provider: 'google',
+            lastLogin: new Date()
+          });
+
+          console.log('✅ New user created in database:', user.email);
+          return done(null, user);
+        }
+      } catch (error) {
+        console.error('❌ Google OAuth Database Error:', error);
+        return done(error, null);
       }
-    } catch (error) {
-      console.error('❌ Google OAuth Database Error:', error);
-      return done(error, null);
-    }
-  }));
+    }));
 
   passport.serializeUser((user, done) => {
     console.log('🔒 Serializing user:', user.email);
@@ -322,9 +327,9 @@ app.get('/api/health', (req, res) => {
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
-    
+
     console.log('📝 Registration attempt:', { name, email });
-    
+
     // Validation
     if (!name || !email || !password) {
       return res.status(400).json({
@@ -332,7 +337,7 @@ app.post('/api/auth/register', async (req, res) => {
         message: 'Name, email, and password are required'
       });
     }
-    
+
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -341,7 +346,7 @@ app.post('/api/auth/register', async (req, res) => {
         message: 'Invalid email format'
       });
     }
-    
+
     // Password strength validation
     const passwordCheck = isStrongPassword(password);
     if (!passwordCheck.isValid) {
@@ -362,15 +367,15 @@ app.post('/api/auth/register', async (req, res) => {
         }
       });
     }
-    
+
     // Check if User model exists
     if (!User) {
       // Hash password even for dummy response
       const hashedPassword = await hashPassword(password);
-      
+
       // Calculate email digits sum for dummy user
       const emailAnalysis = calculateEmailDigitsSum(email);
-      
+
       const dummyUser = {
         id: 'dummy_' + Date.now(),
         name,
@@ -381,10 +386,10 @@ app.post('/api/auth/register', async (req, res) => {
         digitCalculations: emailAnalysis.digitCalculations,
         joinedDate: new Date().toISOString()
       };
-      
+
       console.log('✅ Dummy user created with hashed password:', email);
       console.log('🧮 Email digits sum:', emailAnalysis.totalDigitsSum);
-      
+
       return res.status(201).json({
         success: true,
         message: '🎉 Registration successful! (Dummy mode)',
@@ -394,7 +399,7 @@ app.post('/api/auth/register', async (req, res) => {
         note: 'Connect MongoDB for real user storage'
       });
     }
-    
+
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -403,16 +408,16 @@ app.post('/api/auth/register', async (req, res) => {
         message: 'User already exists with this email'
       });
     }
-    
+
     // Hash the password
     console.log('🔐 Hashing password...');
     const hashedPassword = await hashPassword(password);
     console.log('✅ Password hashed successfully');
-    
+
     // Calculate email digits sum
     const emailAnalysis = calculateEmailDigitsSum(email);
     console.log('🧮 Email digits sum calculation:', emailAnalysis);
-    
+
     // Create new user with hashed password
     const newUser = await User.create({
       name,
@@ -429,10 +434,10 @@ app.post('/api/auth/register', async (req, res) => {
       lastLogin: new Date(),
       isActive: true
     });
-    
+
     console.log('✅ New user registered with secure password:', newUser.email);
     console.log('🧮 User email digits sum:', emailAnalysis.totalDigitsSum);
-    
+
     res.status(201).json({
       success: true,
       message: '🎉 Registration successful!',
@@ -449,10 +454,10 @@ app.post('/api/auth/register', async (req, res) => {
       },
       emailAnalysis: emailAnalysis
     });
-    
+
   } catch (error) {
     console.error('❌ Registration error:', error);
-    
+
     // Handle specific MongoDB validation errors
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map(err => err.message);
@@ -462,7 +467,7 @@ app.post('/api/auth/register', async (req, res) => {
         errors: validationErrors
       });
     }
-    
+
     // Handle duplicate key error
     if (error.code === 11000) {
       return res.status(400).json({
@@ -470,7 +475,7 @@ app.post('/api/auth/register', async (req, res) => {
         message: 'Email already exists'
       });
     }
-    
+
     res.status(500).json({
       success: false,
       message: 'Registration failed',
@@ -483,9 +488,9 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    
+
     console.log('🔐 Login attempt:', email);
-    
+
     // Validation
     if (!email || !password) {
       return res.status(400).json({
@@ -493,7 +498,7 @@ app.post('/api/auth/login', async (req, res) => {
         message: 'Email and password are required'
       });
     }
-    
+
     // Check if User model exists
     if (!User) {
       // Dummy login with password verification
@@ -501,10 +506,10 @@ app.post('/api/auth/login', async (req, res) => {
         const passwordCheck = isStrongPassword(password);
         if (passwordCheck.isValid) {
           const emailAnalysis = calculateEmailDigitsSum(email);
-          
+
           console.log('✅ Dummy login successful with strong password:', email);
           console.log('🧮 Email digits sum:', emailAnalysis.totalDigitsSum);
-          
+
           return res.json({
             success: true,
             message: '🎉 Login successful! (Dummy mode)',
@@ -536,7 +541,7 @@ app.post('/api/auth/login', async (req, res) => {
         });
       }
     }
-    
+
     // Find user in database
     const user = await User.findOne({ email });
     if (!user) {
@@ -545,7 +550,7 @@ app.post('/api/auth/login', async (req, res) => {
         message: 'Invalid email or password'
       });
     }
-    
+
     // Check if user is manual registration user
     if (user.provider !== 'manual') {
       return res.status(401).json({
@@ -553,7 +558,7 @@ app.post('/api/auth/login', async (req, res) => {
         message: `This email is registered with ${user.provider}. Please use ${user.provider} login.`
       });
     }
-    
+
     // Check if user has password (should have for manual users)
     if (!user.password) {
       return res.status(401).json({
@@ -561,11 +566,11 @@ app.post('/api/auth/login', async (req, res) => {
         message: 'Invalid authentication method'
       });
     }
-    
+
     // Compare password with hashed password
     console.log('🔐 Verifying password...');
     const isPasswordValid = await comparePassword(password, user.password);
-    
+
     if (!isPasswordValid) {
       console.log('❌ Password verification failed for:', email);
       return res.status(401).json({
@@ -573,17 +578,17 @@ app.post('/api/auth/login', async (req, res) => {
         message: 'Invalid email or password'
       });
     }
-    
+
     // Calculate email digits sum
     const emailAnalysis = calculateEmailDigitsSum(user.email);
     console.log('🧮 User email digits sum:', emailAnalysis.totalDigitsSum);
-    
+
     // Update last login
     user.lastLogin = new Date();
     await user.save();
-    
+
     console.log('✅ User logged in with verified password:', user.email);
-    
+
     res.json({
       success: true,
       message: '🎉 Login successful!',
@@ -603,7 +608,7 @@ app.post('/api/auth/login', async (req, res) => {
       emailAnalysis: emailAnalysis,
       security: '🔐 Password securely verified'
     });
-    
+
   } catch (error) {
     console.error('❌ Login error:', error);
     res.status(500).json({
@@ -618,16 +623,16 @@ app.post('/api/auth/login', async (req, res) => {
 app.post('/api/auth/check-password', (req, res) => {
   try {
     const { password } = req.body;
-    
+
     if (!password) {
       return res.status(400).json({
         success: false,
         message: 'Password is required'
       });
     }
-    
+
     const passwordCheck = isStrongPassword(password);
-    
+
     res.json({
       success: true,
       message: 'Password strength analyzed',
@@ -635,9 +640,9 @@ app.post('/api/auth/check-password', (req, res) => {
         isValid: passwordCheck.isValid,
         score: passwordCheck.score,
         level: passwordCheck.score >= 5 ? 'Very Strong' :
-               passwordCheck.score >= 4 ? 'Strong' :
-               passwordCheck.score >= 3 ? 'Medium' :
-               passwordCheck.score >= 2 ? 'Weak' : 'Very Weak',
+          passwordCheck.score >= 4 ? 'Strong' :
+            passwordCheck.score >= 3 ? 'Medium' :
+              passwordCheck.score >= 2 ? 'Weak' : 'Very Weak',
         checks: {
           'Length (8+ chars)': passwordCheck.checks.length,
           'Uppercase letter': passwordCheck.checks.upperCase,
@@ -646,7 +651,7 @@ app.post('/api/auth/check-password', (req, res) => {
           'Special characters': passwordCheck.checks.specialChar
         }
       },
-      recommendations: passwordCheck.isValid ? 
+      recommendations: passwordCheck.isValid ?
         ['✅ Password meets all security requirements'] :
         [
           !passwordCheck.checks.length ? '❌ Use at least 8 characters' : null,
@@ -656,7 +661,7 @@ app.post('/api/auth/check-password', (req, res) => {
           !passwordCheck.checks.specialChar ? '❌ Add special characters (!@#$%)' : null
         ].filter(Boolean)
     });
-    
+
   } catch (error) {
     console.error('❌ Password check error:', error);
     res.status(500).json({
@@ -677,7 +682,7 @@ app.get('/api/auth/google', (req, res, next) => {
       setup_url: 'https://console.cloud.google.com/apis/credentials'
     });
   }
-  
+
   console.log('🚀 Starting Google OAuth...');
   passport.authenticate('google', {
     scope: ['profile', 'email']
@@ -686,19 +691,19 @@ app.get('/api/auth/google', (req, res, next) => {
 
 // Google OAuth callback
 app.get('/api/auth/google/callback',
-  passport.authenticate('google', { 
+  passport.authenticate('google', {
     failureRedirect: `${process.env.CLIENT_URL || 'http://localhost:3000'}/login?error=auth_failed`
   }),
   (req, res) => {
     console.log('✅ Google OAuth callback success');
     console.log('👤 User logged in:', req.user.name);
-    
+
     // Calculate email digits sum for Google user
     if (req.user && req.user.email) {
       const emailAnalysis = calculateEmailDigitsSum(req.user.email);
       console.log('🧮 Google user email digits sum:', emailAnalysis.totalDigitsSum);
     }
-    
+
     // Redirect to frontend with success
     res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/?login=success`);
   }
@@ -709,7 +714,7 @@ app.get('/api/auth/check', (req, res) => {
   if (req.user) {
     // Calculate email digits sum for authenticated user
     const emailAnalysis = calculateEmailDigitsSum(req.user.email);
-    
+
     res.json({
       success: true,
       isAuthenticated: true,
@@ -740,7 +745,7 @@ app.get('/api/auth/me', (req, res) => {
   if (req.user) {
     // Calculate email digits sum for current user
     const emailAnalysis = calculateEmailDigitsSum(req.user.email);
-    
+
     res.json({
       success: true,
       data: {
@@ -779,15 +784,15 @@ app.post('/api/auth/logout', (req, res) => {
           message: 'Error logging out'
         });
       }
-      
+
       req.session.destroy((err) => {
         if (err) {
           console.error('❌ Session destroy error:', err);
         }
-        
+
         res.clearCookie('connect.sid');
         console.log('👋 User logged out:', userName);
-        
+
         res.json({
           success: true,
           message: `Goodbye ${userName}! You have been logged out successfully.`
@@ -817,7 +822,7 @@ app.get('/api/properties', async (req, res) => {
       // If no properties in database and user is logged in, create sample data
       if (properties.length === 0 && req.user) {
         console.log('📊 Creating sample properties for logged-in user...');
-        
+
         const sampleProperties = [
           {
             title: "Sea View Luxury Apartment",
@@ -848,7 +853,7 @@ app.get('/api/properties', async (req, res) => {
 
         const createdProperties = await Property.insertMany(sampleProperties);
         console.log(`✅ Created ${createdProperties.length} sample properties in database`);
-        
+
         properties = await Property.find({ status: 'active' })
           .populate('owner', 'name email avatar')
           .sort({ createdAt: -1 });
@@ -863,7 +868,7 @@ app.get('/api/properties', async (req, res) => {
         source: 'database'
       });
     }
-    
+
     // Fallback to sample data if no database
     const sampleProperties = [
       {
@@ -909,7 +914,7 @@ app.get('/api/properties', async (req, res) => {
 app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, phone, subject, message, propertyId, interestedIn } = req.body;
-    
+
     if (!name || !email || !message) {
       return res.status(400).json({
         success: false,
@@ -965,10 +970,10 @@ app.post('/api/contact', async (req, res) => {
     res.json({
       success: true,
       message: 'Thank you for contacting us! We will get back to you within 24 hours.',
-      data: { 
-        name, 
-        email, 
-        subject, 
+      data: {
+        name,
+        email,
+        subject,
         timestamp: new Date().toISOString(),
         user: req.user ? req.user.name : 'Guest'
       },
@@ -993,11 +998,11 @@ app.post('/api/users', async (req, res) => {
   try {
     console.log('🧮 Users individual digits sum calculation API hit via POST!');
     console.log('Request body:', req.body);
-    
+
     // Check if User model is available
     if (!User) {
       console.log('❌ Database not connected, using dummy data');
-      
+
       // Dummy data for testing when database is not available
       const dummyUsers = [
         { name: "Jaskaran Guru", email: "gurujaskaran2006@gmail.com" },
@@ -1016,14 +1021,14 @@ app.post('/api/users', async (req, res) => {
       dummyUsers.forEach((user, index) => {
         const emailAnalysis = calculateEmailDigitsSum(user.email);
         grandTotalDigitsSum += emailAnalysis.totalDigitsSum;
-        
+
         console.log(`\n${index + 1}. ${user.name}: ${user.email}`);
         console.log(`   🔢 Number groups: [${emailAnalysis.numberGroups.join(', ')}]`);
         emailAnalysis.digitCalculations.forEach(calc => {
           console.log(`   📊 ${calc.numberGroup} → ${calc.calculation}`);
         });
         console.log(`   ✅ Total digits sum: ${emailAnalysis.totalDigitsSum}`);
-        
+
         results.push({
           name: user.name,
           email: user.email,
@@ -1083,16 +1088,16 @@ app.post('/api/users', async (req, res) => {
       console.log(`\n${index + 1}. Processing user: ${user.name}`);
       console.log(`   📧 Email: ${user.email}`);
       console.log(`   🔗 Provider: ${user.provider}`);
-      
+
       const emailAnalysis = calculateEmailDigitsSum(user.email);
       grandTotalDigitsSum += emailAnalysis.totalDigitsSum;
-      
+
       console.log(`   🔢 Number groups: [${emailAnalysis.numberGroups.join(', ')}]`);
       emailAnalysis.digitCalculations.forEach(calc => {
         console.log(`   📊 ${calc.numberGroup} → ${calc.calculation}`);
       });
       console.log(`   ✅ Total digits sum: ${emailAnalysis.totalDigitsSum}`);
-      
+
       // Store processed user data
       processedUsers.push({
         id: user._id,
@@ -1149,7 +1154,7 @@ app.post('/api/users', async (req, res) => {
         manualUsers: manualUsers.length,
         grandTotalDigitsSum: grandTotalDigitsSum,
         averageDigitsSumPerUser: users.length > 0 ? parseFloat((grandTotalDigitsSum / users.length).toFixed(2)) : 0,
-        averageDigitsSumPerUserWithNumbers: usersWithNumbers.length > 0 ? 
+        averageDigitsSumPerUserWithNumbers: usersWithNumbers.length > 0 ?
           parseFloat((grandTotalDigitsSum / usersWithNumbers.length).toFixed(2)) : 0
       },
       calculations: processedUsers,
@@ -1199,7 +1204,7 @@ app.post('/api/users', async (req, res) => {
 app.get('/api/users', async (req, res) => {
   try {
     console.log('📊 Fetching users via GET...');
-    
+
     // Check if User model is available
     if (!User) {
       console.log('❌ Database not connected');
@@ -1342,7 +1347,7 @@ const server = app.listen(PORT, () => {
   console.log(`🧮 Users Digits Sum: http://localhost:${PORT}/api/users (POST method)`);
   console.log(`📝 Register: http://localhost:${PORT}/api/auth/register`);
   console.log(`🔐 Login: http://localhost:${PORT}/api/auth/login`);
-  
+
   // Configuration check
   console.log('\n📋 Configuration Status:');
   console.log(`   MongoDB: ${process.env.MONGODB_URI ? '✅' : '❌'}`);
