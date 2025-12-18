@@ -345,12 +345,18 @@ app.get('/api/auth/google', passport.authenticate('google', { scope: ['profile',
 
 // Google Callback
 app.get('/api/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: `${clientUrl}/login?error=failed` }),
+  passport.authenticate('google', { 
+    failureRedirect: `${clientUrl}/login?error=failed` 
+  }),
   (req, res) => {
-    // Explicitly save session before redirect
     req.session.save((err) => {
       if (err) console.error('Session save error:', err);
-      res.redirect(`${clientUrl}/?login=success`);
+      
+      // Ensure clean redirect URL (remove trailing slash if exists)
+      const cleanClientUrl = clientUrl.endsWith('/') ? clientUrl.slice(0, -1) : clientUrl;
+      
+      console.log(`Redirecting to: ${cleanClientUrl}/?login=success`);
+      res.redirect(`${cleanClientUrl}/?login=success`);
     });
   }
 );
