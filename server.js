@@ -77,7 +77,7 @@ const startServer = async () => {
     console.log('🔌 Connecting to MongoDB...');
     
     // Yahan apna Hardcoded Connection String daalo (Password check kar lena!)
-    const DB_URI = 'mongodb+srv://appuser:SaarthiFinal2024@cluster0.6twxw04.mongodb.net/Saarthi-realestate?retryWrites=true&w=majority';
+    const DB_URI = 'mongodb+srv://appuser:JagritLaxmanJaskaran@cluster0.6twxw04.mongodb.net/Saarthi-realestate?retryWrites=true&w=majority';
     
     await mongoose.connect(DB_URI, {
       serverSelectionTimeoutMS: 5000 // 5 second timeout
