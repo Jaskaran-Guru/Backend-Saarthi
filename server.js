@@ -76,7 +76,7 @@ const startServer = async () => {
     // 1. Connect to MongoDB
     console.log('🔌 Connecting to MongoDB...');
     
-    // Yahan apna Hardcoded Connection String daalo (Password check kar lena!)
+    // Hardcoded Connection String (Password included)
     const DB_URI = 'mongodb+srv://appuser:JagritLaxmanJaskaran@cluster0.6twxw04.mongodb.net/Saarthi-realestate?retryWrites=true&w=majority';
     
     await mongoose.connect(DB_URI, {
@@ -95,6 +95,7 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`🌍 Environment: ${isProduction ? 'Production' : 'Development'}`);
+      console.log(`🔗 Client URL: ${clientUrl}`);
     });
 
   } catch (error) {
@@ -105,8 +106,6 @@ const startServer = async () => {
 
 // Call the function
 startServer();
-
-
 
 // ==========================================
 // 4. SESSION CONFIGURATION
@@ -151,7 +150,7 @@ const calculateEmailDigitsSum = (email) => {
   numbers.forEach(num => {
     totalDigitsSum += num.split('').reduce((sum, d) => sum + parseInt(d), 0);
   });
-  return { totalDigitsSum }; // Simplified for brevity
+  return { totalDigitsSum };
 };
 
 // ==========================================
@@ -307,7 +306,7 @@ app.post('/api/auth/logout', (req, res) => {
   });
 });
 
-// Other Routes (Properties, Contact)
+// Other Routes
 app.post('/api/contact', async (req, res) => {
     try { if(Contact) await Contact.create(req.body); res.json({ success: true }); } 
     catch(e) { res.status(500).json({ error: e.message }) }
@@ -318,10 +317,4 @@ app.get('/api/properties', async (req, res) => {
     catch(e) { res.status(500).json({ error: e.message }) }
 });
 
-// Start Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌍 Environment: ${isProduction ? 'Production' : 'Development'}`);
-  console.log(`🔗 Client URL: ${clientUrl}`);
-});
+// No extra app.listen here! Only the one inside startServer()
