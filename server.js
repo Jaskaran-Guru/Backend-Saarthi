@@ -65,19 +65,28 @@ app.use('/api', limiter);
 // ==========================================
 // 3. DATABASE CONNECTION & MODELS
 // ==========================================
-let User, Property, Contact;
+// ==========================================
+// 3. DATABASE CONNECTION (HARDCODED TEST)
+// ==========================================
+const mongoose = require('mongoose');
 
-if (process.env.MONGODB_URI) {
-  const connectDB = require('./config/database');
-  connectDB();
-  
-  // Load Models
-  User = require('./models/User');
-  Property = require('./models/Property');
-  Contact = require('./models/Contact');
-} else {
-  console.log('⚠️  No MongoDB URI found in .env');
-}
+// Apna asli password yahan daalo (e.g., SaarthiUser2024)
+const DB_URI = 'mongodb+srv://appuser:YAHAN_ASLI_PASSWORD_DAALO@cluster0.6twxw04.mongodb.net/Saarthi-realestate?retryWrites=true&w=majority';
+
+console.log('🔌 Connecting to MongoDB (Hardcoded)...');
+
+mongoose.connect(DB_URI)
+  .then(() => {
+    console.log('✅ MongoDB Connected Successfully!');
+    // Load Models
+    User = require('./models/User');
+    Property = require('./models/Property');
+    Contact = require('./models/Contact');
+  })
+  .catch((err) => {
+    console.error('❌ MongoDB Connection Failed:', err.message);
+  });
+
 
 // ==========================================
 // 4. SESSION CONFIGURATION
