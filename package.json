@@ -1,10 +1,10 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
+    "start": "nodemon server.js",
     "dev": "nodemon server.js"
   },
   "keywords": [],
@@ -34,6 +34,6 @@
     "prisma": "^6.16.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.11"
   }
 }
