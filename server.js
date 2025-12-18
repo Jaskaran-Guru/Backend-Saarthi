@@ -63,36 +63,49 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 // ==========================================
-// 3. DATABASE CONNECTION & MODEL LOADING
+// 3. DATABASE CONNECTION & SERVER START
 // ==========================================
-
-// Global variables define karo
-let User, Property, Contact;
 
 const mongoose = require('mongoose');
 
-// Models ko connection se pehle hi require kar lo (Safe side)
-// Note: Agar DB connect nahi hoga, tab bhi code chalega par error dega jab use karoge
-try {
-  User = require('./models/User');
-  Property = require('./models/Property');
-  Contact = require('./models/Contact');
-} catch (e) {
-  console.error("Model loading error:", e);
-}
+// Global Models
+let User, Property, Contact;
 
-// Hardcoded Connection String (Password sahi daalna!)
-const DB_URI = 'mongodb+srv://appuser:SaarthiFinal2024@cluster0.6twxw04.mongodb.net/Saarthi-realestate?retryWrites=true&w=majority';
-
-console.log('🔌 Connecting to MongoDB...');
-
-mongoose.connect(DB_URI)
-  .then(() => {
+const startServer = async () => {
+  try {
+    // 1. Connect to MongoDB
+    console.log('🔌 Connecting to MongoDB...');
+    
+    // Yahan apna Hardcoded Connection String daalo (Password check kar lena!)
+    const DB_URI = 'mongodb+srv://appuser:SaarthiFinal2024@cluster0.6twxw04.mongodb.net/Saarthi-realestate?retryWrites=true&w=majority';
+    
+    await mongoose.connect(DB_URI, {
+      serverSelectionTimeoutMS: 5000 // 5 second timeout
+    });
+    
     console.log('✅ MongoDB Connected Successfully!');
-  })
-  .catch((err) => {
-    console.error('❌ MongoDB Connection Failed:', err.message);
-  });
+    
+    // 2. Load Models
+    User = require('./models/User');
+    Property = require('./models/Property');
+    Contact = require('./models/Contact');
+    
+    // 3. Start Express Server (Only after DB connects)
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`🌍 Environment: ${isProduction ? 'Production' : 'Development'}`);
+    });
+
+  } catch (error) {
+    console.error('❌ MongoDB Connection Failed:', error.message);
+    process.exit(1); // Stop app if DB fails
+  }
+};
+
+// Call the function
+startServer();
+
 
 
 // ==========================================
