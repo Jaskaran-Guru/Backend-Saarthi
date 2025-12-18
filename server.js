@@ -63,25 +63,32 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 // ==========================================
-// 3. DATABASE CONNECTION & MODELS
+// 3. DATABASE CONNECTION & MODEL LOADING
 // ==========================================
-// ==========================================
-// 3. DATABASE CONNECTION (HARDCODED TEST)
-// ==========================================
+
+// Global variables define karo
+let User, Property, Contact;
+
 const mongoose = require('mongoose');
 
-// Apna asli password yahan daalo (e.g., SaarthiUser2024)
-const DB_URI = 'mongodb+srv://appuser:YAHAN_ASLI_PASSWORD_DAALO@cluster0.6twxw04.mongodb.net/Saarthi-realestate?retryWrites=true&w=majority';
+// Models ko connection se pehle hi require kar lo (Safe side)
+// Note: Agar DB connect nahi hoga, tab bhi code chalega par error dega jab use karoge
+try {
+  User = require('./models/User');
+  Property = require('./models/Property');
+  Contact = require('./models/Contact');
+} catch (e) {
+  console.error("Model loading error:", e);
+}
 
-console.log('🔌 Connecting to MongoDB (Hardcoded)...');
+// Hardcoded Connection String (Password sahi daalna!)
+const DB_URI = 'mongodb+srv://appuser:SaarthiFinal2024@cluster0.6twxw04.mongodb.net/Saarthi-realestate?retryWrites=true&w=majority';
+
+console.log('🔌 Connecting to MongoDB...');
 
 mongoose.connect(DB_URI)
   .then(() => {
     console.log('✅ MongoDB Connected Successfully!');
-    // Load Models
-    User = require('./models/User');
-    Property = require('./models/Property');
-    Contact = require('./models/Contact');
   })
   .catch((err) => {
     console.error('❌ MongoDB Connection Failed:', err.message);
