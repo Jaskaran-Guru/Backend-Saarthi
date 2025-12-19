@@ -323,5 +323,18 @@ app.post('/api/properties', async (req, res) => {
     }
 });
 
+app.post('/api/contact', async (req, res) => {
+    try {
+        console.log("📥 Contact Form Data:", req.body);
+        
+        const newContact = await Contact.create(req.body);
+        
+        console.log("✅ Message Saved:", newContact._id);
+        res.json({ success: true, message: "Message sent successfully!" });
+    } catch (e) {
+        console.error("❌ Contact Error:", e.message);
+        res.status(500).json({ error: e.message });
+    }
+});
 
 // No extra app.listen here! Only the one inside startServer()
