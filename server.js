@@ -306,15 +306,25 @@ app.post('/api/auth/logout', (req, res) => {
   });
 });
 
-// Other Routes
-app.post('/api/contact', async (req, res) => {
-    try { if(Contact) await Contact.create(req.body); res.json({ success: true }); } 
-    catch(e) { res.status(500).json({ error: e.message }) }
-});
 
-app.get('/api/properties', async (req, res) => {
-    try { const props = Property ? await Property.find({ status: 'active' }).limit(20) : []; res.json({ success: true, data: props }); } 
-    catch(e) { res.status(500).json({ error: e.message }) }
+app.post('/api/properties', async (req, res) => {
+    try {
+        console.log("📥 Received Property Data:", req.body.title);
+        if (!Property) return res.status(500).json({ error: "DB Error" });
+        
+        // Create Property
+        const newProperty = await Property.create({
+            ...req.body,
+            status: 'active',
+            createdAt: new Date()
+        });
+        
+        console.log("✅ Property Saved:", newProperty._id);
+        res.json({ success: true, data: newProperty });
+    } catch (e) {
+        console.error("❌ Property Save Failed:", e.message);
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // No extra app.listen here! Only the one inside startServer()
