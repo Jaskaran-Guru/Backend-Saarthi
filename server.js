@@ -307,24 +307,21 @@ app.post('/api/auth/logout', (req, res) => {
 });
 
 
+// server.js
 app.post('/api/properties', async (req, res) => {
     try {
-        console.log("📥 Received Property Data:", req.body.title);
-        if (!Property) return res.status(500).json({ error: "DB Error" });
+        console.log("📥 Data Received:", req.body); // Console mein check karna kya aaya
         
-        // Create Property
-        const newProperty = await Property.create({
-            ...req.body,
-            status: 'active',
-            createdAt: new Date()
-        });
+        // Direct save without restructuring (Schema will handle it)
+        const newProperty = await Property.create(req.body);
         
-        console.log("✅ Property Saved:", newProperty._id);
+        console.log("✅ Saved:", newProperty._id);
         res.json({ success: true, data: newProperty });
     } catch (e) {
-        console.error("❌ Property Save Failed:", e.message);
-        res.status(500).json({ error: e.message });
+        console.error("❌ Error:", e.message);
+        res.status(500).json({ error: e.message }); // Detailed error frontend ko milega
     }
 });
+
 
 // No extra app.listen here! Only the one inside startServer()
