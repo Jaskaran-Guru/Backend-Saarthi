@@ -23,10 +23,10 @@ const favoriteSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Compound index to prevent duplicate favorites
+
 favoriteSchema.index({ user: 1, property: 1 }, { unique: true });
 
-// Index for better query performance
+
 favoriteSchema.index({ user: 1, addedAt: -1 });
 
 module.exports = mongoose.model('Favorite', favoriteSchema);

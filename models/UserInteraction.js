@@ -44,7 +44,7 @@ const userInteractionSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for better performance
+
 userInteractionSchema.index({ user: 1, timestamp: -1 });
 userInteractionSchema.index({ action: 1, timestamp: -1 });
 

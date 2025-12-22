@@ -1,7 +1,7 @@
 const UserInteraction = require('../models/UserInteraction');
 const crypto = require('crypto');
 
-// Generate session ID
+
 const generateSessionId = (req) => {
   const userAgent = req.headers['user-agent'] || '';
   const ip = req.ip || req.connection.remoteAddress;
@@ -10,10 +10,10 @@ const generateSessionId = (req) => {
   return crypto.createHash('md5').update(`${userAgent}-${ip}-${timestamp}`).digest('hex');
 };
 
-// Track user interaction
+
 const trackInteraction = async (req, action, details = {}) => {
   try {
-    if (!req.user) return; // Only track authenticated users
+    if (!req.user) return; 
 
     const sessionId = req.session.sessionId || generateSessionId(req);
     req.session.sessionId = sessionId;
@@ -36,7 +36,6 @@ const trackInteraction = async (req, action, details = {}) => {
   }
 };
 
-// Middleware to track page views
 const trackPageView = (pageName) => {
   return async (req, res, next) => {
     if (req.user) {

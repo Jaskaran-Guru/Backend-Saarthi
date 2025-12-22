@@ -15,7 +15,7 @@ const submitContact = async (req, res) => {
       interestedIn
     } = req.body;
 
-    // Create contact entry
+   
     const contactData = {
       name,
       email,
@@ -29,17 +29,17 @@ const submitContact = async (req, res) => {
       userAgent: req.get('User-Agent')
     };
 
-    // Add user if authenticated
+    
     if (req.user) {
       contactData.user = req.user._id;
     }
 
-    // Add property if specified
+    
     if (propertyId) {
       const property = await Property.findById(propertyId);
       if (property) {
         contactData.property = propertyId;
-        // Increment property inquiries
+        
         await Property.findByIdAndUpdate(
           propertyId,
           { $inc: { inquiries: 1 } },
@@ -88,13 +88,13 @@ const getAllContacts = async (req, res) => {
       limit = 20
     } = req.query;
 
-    // Build query
+    
     let query = {};
     if (status) query.status = status;
     if (subject) query.subject = subject;
     if (priority) query.priority = priority;
 
-    // Pagination
+    
     const currentPage = parseInt(page);
     const perPage = parseInt(limit);
     const skip = (currentPage - 1) * perPage;
@@ -127,9 +127,7 @@ const getAllContacts = async (req, res) => {
   }
 };
 
-// @desc    Update contact status (admin only)
-// @route   PUT /api/contact/:id
-// @access  Private/Admin
+
 const updateContact = async (req, res) => {
   try {
     const { status, priority, responseMessage } = req.body;

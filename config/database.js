@@ -12,7 +12,7 @@ const connectDB = async () => {
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     console.log(`🗄️  Database Name: ${conn.connection.name}`);
     
-    // Test connection
+    
     console.log('🧪 Testing database connection...');
     await mongoose.connection.db.admin().ping();
     console.log('🎉 MongoDB connection test successful!');
@@ -21,7 +21,7 @@ const connectDB = async () => {
     console.error(`❌ Database connection failed: ${error.message}`);
     console.error('Full error:', error);
     
-    // Continue without database
+    
     console.log('⚠️  Continuing without database...');
   }
 };

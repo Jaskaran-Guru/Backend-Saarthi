@@ -13,11 +13,7 @@ require('dotenv').config();
 
 const app = express();
 
-// ==========================================
-// 1. CRITICAL DEPLOYMENT SETTINGS
-// ==========================================
 
-// Trust proxy is REQUIRED for Render/Heroku (handles HTTPS correctly)
 app.set('trust proxy', 1);
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -26,9 +22,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 let clientUrlRaw = process.env.CLIENT_URL || 'http://localhost:3000';
 const clientUrl = clientUrlRaw.endsWith('/') ? clientUrlRaw.slice(0, -1) : clientUrlRaw;
 
-// ==========================================
-// 2. MIDDLEWARE & CORS
-// ==========================================
+
 
 app.use(helmet({
   contentSecurityPolicy: false,
@@ -36,7 +30,7 @@ app.use(helmet({
 }));
 app.use(compression());
 
-// CORS configuration
+
 const corsOptions = {
   origin: clientUrl,
   credentials: true, // Important for cookies/sessions
@@ -45,16 +39,16 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// Body parsing
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Logging
+
 if (!isProduction) {
   app.use(morgan('dev'));
 }
 
-// Rate limiting
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -62,21 +56,19 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
-// ==========================================
-// 3. DATABASE CONNECTION & SERVER START
-// ==========================================
+
 
 const mongoose = require('mongoose');
 
-// Global Models
+
 let User, Property, Contact;
 
 const startServer = async () => {
   try {
-    // 1. Connect to MongoDB
+   
     console.log('🔌 Connecting to MongoDB...');
     
-    // Hardcoded Connection String (Password included)
+    
     const DB_URI = 'mongodb+srv://appuser:JagritLaxmanJaskaran@cluster0.6twxw04.mongodb.net/Saarthi-realestate?retryWrites=true&w=majority';
     
     await mongoose.connect(DB_URI, {
@@ -85,12 +77,12 @@ const startServer = async () => {
     
     console.log('✅ MongoDB Connected Successfully!');
     
-    // 2. Load Models
+   
     User = require('./models/User');
     Property = require('./models/Property');
     Contact = require('./models/Contact');
     
-    // 3. Start Express Server (Only after DB connects)
+  
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
@@ -100,16 +92,14 @@ const startServer = async () => {
 
   } catch (error) {
     console.error('❌ MongoDB Connection Failed:', error.message);
-    process.exit(1); // Stop app if DB fails
+    process.exit(1); 
   }
 };
 
-// Call the function
+
 startServer();
 
-// ==========================================
-// 4. SESSION CONFIGURATION
-// ==========================================
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'fallback_secret_do_not_use_in_prod',
   resave: false,
@@ -127,9 +117,7 @@ app.use(session({
   }
 }));
 
-// ==========================================
-// 5. UTILITY FUNCTIONS
-// ==========================================
+
 
 const hashPassword = async (password) => {
   try {
@@ -153,9 +141,7 @@ const calculateEmailDigitsSum = (email) => {
   return { totalDigitsSum };
 };
 
-// ==========================================
-// 6. PASSPORT & AUTH SETUP
-// ==========================================
+
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
@@ -177,7 +163,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
          return done(null, user);
       }
 
-      // Check existing user by Email
+      
       const existingUser = await User.findOne({ email: profile.emails[0].value });
       if (existingUser) {
         existingUser.googleId = profile.id;
@@ -187,7 +173,6 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         return done(null, existingUser);
       }
 
-      // Create New User
       const newUser = await User.create({
         googleId: profile.id,
         name: profile.displayName,
@@ -218,11 +203,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   app.use(passport.session());
 }
 
-// ==========================================
-// 7. ROUTES
-// ==========================================
 
-// Root route
 app.get('/', (req, res) => {
   res.json({
     status: 'running',
@@ -231,12 +212,12 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy', mongo: !!User, authenticated: !!req.user });
 });
 
-// --- AUTH ROUTES ---
+
 
 app.post('/api/auth/register', async (req, res) => {
   try {
@@ -271,10 +252,10 @@ app.post('/api/auth/login', async (req, res) => {
   } catch (error) { res.status(500).json({ success: false, message: error.message }); }
 });
 
-// Google Auth
+
 app.get('/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-// Google Callback (FIXED)
+
 app.get('/api/auth/google/callback',
   passport.authenticate('google', { failureRedirect: `${clientUrl}/login?error=failed` }),
   (req, res) => {
@@ -286,7 +267,7 @@ app.get('/api/auth/google/callback',
   }
 );
 
-// Check Auth Status
+
 app.get('/api/auth/check', (req, res) => {
   if (req.isAuthenticated() && req.user) {
     const emailAnalysis = calculateEmailDigitsSum(req.user.email);
@@ -296,7 +277,7 @@ app.get('/api/auth/check', (req, res) => {
   }
 });
 
-// Logout
+
 app.post('/api/auth/logout', (req, res) => {
   req.logout(() => {
     req.session.destroy((err) => {
@@ -307,7 +288,7 @@ app.post('/api/auth/logout', (req, res) => {
 });
 
 
-// server.js
+
 app.post('/api/properties', async (req, res) => {
     try {
         console.log("📥 Data Received:", req.body); // Console mein check karna kya aaya
@@ -337,4 +318,4 @@ app.post('/api/contact', async (req, res) => {
     }
 });
 
-// No extra app.listen here! Only the one inside startServer()
+

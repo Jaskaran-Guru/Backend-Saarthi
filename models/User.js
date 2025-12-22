@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   googleId: {
     type: String,
-    required: false, // ⭐ Make it optional
+    required: false, 
     unique: true,
     sparse: true
   },
@@ -19,10 +19,10 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     trim: true
   },
-  // ⭐ Add password field
+  
   password: {
     type: String,
-    required: false // Optional for Google users
+    required: false 
   },
   avatar: {
     type: String,
@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema({
   provider: {
     type: String,
     enum: ['google', 'manual'],
-    default: 'manual' // ⭐ Default to manual
+    default: 'manual' 
   },
   role: {
     type: String,
@@ -58,7 +58,7 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for better performance
+
 userSchema.index({ googleId: 1 });
 userSchema.index({ email: 1 });
 

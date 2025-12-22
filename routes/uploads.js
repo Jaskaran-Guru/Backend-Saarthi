@@ -4,7 +4,7 @@ const multer = require('multer');
 const cloudinary = require('../config/cloudinary');
 const { isAuthenticated } = require('../middleware/auth');
 
-// Configure multer for memory storage
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {

@@ -13,7 +13,7 @@ const formatPrice = (price) => {
   }
 };
 
-// Generate unique slug
+
 const generateSlug = (title, id) => {
   return title
     .toLowerCase()
@@ -24,7 +24,7 @@ const generateSlug = (title, id) => {
     .substring(0, 50) + '-' + id;
 };
 
-// Calculate EMI
+
 const calculateEMI = (principal, rate, tenure) => {
   const monthlyRate = rate / 12 / 100;
   const months = tenure * 12;
@@ -39,19 +39,19 @@ const calculateEMI = (principal, rate, tenure) => {
   return Math.round(emi);
 };
 
-// Validate Indian phone number
+
 const validatePhone = (phone) => {
   const phoneRegex = /^(\+91[\-\s]?)?[0]?(91)?[789]\d{9}$/;
   return phoneRegex.test(phone);
 };
 
-// Validate Indian pincode
+
 const validatePincode = (pincode) => {
   const pincodeRegex = /^[1-9][0-9]{5}$/;
   return pincodeRegex.test(pincode);
 };
 
-// Get Indian states and cities
+
 const indianStates = [
   'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
   'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
@@ -74,14 +74,14 @@ const majorCities = [
   'Ranchi', 'Howrah', 'Jalandhar', 'Tiruchirappalli', 'Bhubaneswar'
 ];
 
-// Generate property reference ID
+
 const generatePropertyId = () => {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substring(2, 8);
   return `SAR${timestamp}${random}`.toUpperCase();
 };
 
-// Pagination helper
+
 const getPagination = (page = 1, limit = 10) => {
   const currentPage = Math.max(1, parseInt(page));
   const perPage = Math.min(50, Math.max(1, parseInt(limit)));
@@ -94,7 +94,7 @@ const getPagination = (page = 1, limit = 10) => {
   };
 };
 
-// API Response formatter
+
 const apiResponse = (res, statusCode, success, message, data = null, extra = {}) => {
   const response = {
     success,
@@ -109,12 +109,12 @@ const apiResponse = (res, statusCode, success, message, data = null, extra = {})
   return res.status(statusCode).json(response);
 };
 
-// Success response helper
+
 const successResponse = (res, message, data = null, extra = {}) => {
   return apiResponse(res, 200, true, message, data, extra);
 };
 
-// Error response helper
+
 const errorResponse = (res, statusCode = 500, message = 'Server Error', data = null) => {
   return apiResponse(res, statusCode, false, message, data);
 };

@@ -54,7 +54,6 @@ const interactionSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes for analytics queries
 interactionSchema.index({ user: 1, createdAt: -1 });
 interactionSchema.index({ action: 1, createdAt: -1 });
 interactionSchema.index({ 'details.propertyId': 1 });

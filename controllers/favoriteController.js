@@ -33,7 +33,7 @@ const addFavorite = async (req, res) => {
   try {
     const { propertyId, notes } = req.body;
 
-    // Check if property exists
+    
     const property = await Property.findById(propertyId);
     if (!property) {
       return res.status(404).json({
@@ -42,7 +42,7 @@ const addFavorite = async (req, res) => {
       });
     }
 
-    // Check if already in favorites
+   
     const existingFavorite = await Favorite.findOne({
       user: req.user._id,
       property: propertyId
@@ -55,7 +55,7 @@ const addFavorite = async (req, res) => {
       });
     }
 
-    // Add to favorites
+    
     const favorite = await Favorite.create({
       user: req.user._id,
       property: propertyId,
@@ -87,9 +87,7 @@ const addFavorite = async (req, res) => {
   }
 };
 
-// @desc    Remove property from favorites
-// @route   DELETE /api/favorites/:propertyId
-// @access  Private
+
 const removeFavorite = async (req, res) => {
   try {
     const { propertyId } = req.params;
@@ -120,9 +118,7 @@ const removeFavorite = async (req, res) => {
   }
 };
 
-// @desc    Check if property is in user's favorites
-// @route   GET /api/favorites/check/:propertyId
-// @access  Private
+
 const checkFavorite = async (req, res) => {
   try {
     const { propertyId } = req.params;
@@ -146,9 +142,7 @@ const checkFavorite = async (req, res) => {
   }
 };
 
-// @desc    Clear all favorites
-// @route   DELETE /api/favorites
-// @access  Private
+
 const clearAllFavorites = async (req, res) => {
   try {
     const result = await Favorite.deleteMany({ user: req.user._id });

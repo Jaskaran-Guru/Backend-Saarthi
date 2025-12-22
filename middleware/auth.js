@@ -1,4 +1,4 @@
-// Check if user is authenticated via session
+
 const isAuthenticated = (req, res, next) => {
   console.log('Auth Check - Session:', req.session);
   console.log('Auth Check - User:', req.user);
@@ -15,7 +15,7 @@ const isAuthenticated = (req, res, next) => {
   });
 };
 
-// Check if user is admin
+
 const isAdmin = (req, res, next) => {
   if (req.user && req.user.role === 'admin') {
     return next();
@@ -27,10 +27,9 @@ const isAdmin = (req, res, next) => {
   });
 };
 
-// Optional authentication (doesn't block if not authenticated)
+
 const optionalAuth = (req, res, next) => {
-  // User info will be available in req.user if authenticated
-  // but won't block the request if not authenticated
+
   next();
 };
 

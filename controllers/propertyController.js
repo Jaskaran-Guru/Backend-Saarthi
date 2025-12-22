@@ -20,10 +20,10 @@ const getProperties = async (req, res) => {
       order = 'desc'
     } = req.query;
 
-    // Build query
+    
     let query = { status: 'active' };
 
-    // Search in title and description
+    
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -32,69 +32,69 @@ const getProperties = async (req, res) => {
       ];
     }
 
-    // Location filter
+   
     if (location) {
       query.city = { $regex: location, $options: 'i' };
     }
 
-    // Property type filter
+    
     if (propertyType) {
       query.propertyType = propertyType;
     }
 
-    // Price range filter
+    
     if (minPrice || maxPrice) {
       query.price = {};
-      if (minPrice) query.price.$gte = parseFloat(minPrice) * 10000000; // Convert crore to rupees
+      if (minPrice) query.price.$gte = parseFloat(minPrice) * 10000000; 
       if (maxPrice) query.price.$lte = parseFloat(maxPrice) * 10000000;
     }
 
-    // Bedrooms filter
+    
     if (bedrooms) {
       query.bedrooms = { $gte: parseInt(bedrooms) };
     }
 
-    // Furnishing filter
+   
     if (furnishing) {
       query.furnishing = furnishing;
     }
 
-    // Possession filter
+   
     if (possession) {
       query.possession = possession;
     }
 
-    // Area filter
+  
     if (minArea || maxArea) {
       query.area = {};
       if (minArea) query.area.$gte = parseInt(minArea);
       if (maxArea) query.area.$lte = parseInt(maxArea);
     }
 
-    // Amenities filter
+    
     if (amenities) {
       const amenitiesArray = Array.isArray(amenities) ? amenities : [amenities];
       query.amenities = { $in: amenitiesArray };
     }
 
-    // Sorting
+    
     const sortOrder = order === 'desc' ? -1 : 1;
     const sortObj = {};
     sortObj[sort] = sortOrder;
 
-    // Pagination
+    
     const currentPage = parseInt(page);
     const perPage = parseInt(limit);
     const skip = (currentPage - 1) * perPage;
 
-    // Execute query
+    
     const properties = await Property.find(query)
       .populate('owner', 'name email avatar')
       .sort(sortObj)
       .skip(skip)
       .limit(perPage);
 
-    // Get total count
+   
     const total = await Property.countDocuments(query);
 
     res.json({
@@ -147,7 +147,7 @@ const getProperty = async (req, res) => {
   } catch (error) {
     console.error('Get property error:', error);
     
-    // Handle invalid ObjectId
+    
     if (error.name === 'CastError') {
       return res.status(400).json({
         success: false,
@@ -165,11 +165,11 @@ const getProperty = async (req, res) => {
 
 const createProperty = async (req, res) => {
   try {
-    // Add owner to property data
+    
     const propertyData = { ...req.body };
     propertyData.owner = req.user._id;
 
-    // Set agent info if provided
+   
     if (req.body.agentInfo) {
       propertyData.agent = req.body.agentInfo;
       delete propertyData.agentInfo; // Remove the temporary field
@@ -216,9 +216,7 @@ const createProperty = async (req, res) => {
   }
 };
 
-// @desc    Update property
-// @route   PUT /api/properties/:id
-// @access  Private
+
 const updateProperty = async (req, res) => {
   try {
     let property = await Property.findById(req.params.id);
@@ -230,7 +228,7 @@ const updateProperty = async (req, res) => {
       });
     }
 
-    // Check if user owns the property or is admin
+   
     if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
@@ -278,9 +276,7 @@ const updateProperty = async (req, res) => {
   }
 };
 
-// @desc    Delete property
-// @route   DELETE /api/properties/:id
-// @access  Private
+
 const deleteProperty = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
@@ -292,7 +288,7 @@ const deleteProperty = async (req, res) => {
       });
     }
 
-    // Check if user owns the property or is admin
+   
     if (property.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
@@ -324,9 +320,7 @@ const deleteProperty = async (req, res) => {
   }
 };
 
-// @desc    Get featured properties
-// @route   GET /api/properties/featured
-// @access  Public
+
 const getFeaturedProperties = async (req, res) => {
   try {
     const properties = await Property.find({

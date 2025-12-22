@@ -1,11 +1,11 @@
 const nodemailer = require('nodemailer');
 
-// Create transporter
+
 const createTransporter = () => {
   return nodemailer.createTransporter({
     host: process.env.EMAIL_HOST,
     port: process.env.EMAIL_PORT,
-    secure: false, // true for 465, false for other ports
+    secure: false, 
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS
@@ -16,7 +16,7 @@ const createTransporter = () => {
   });
 };
 
-// Send email function
+
 const sendEmail = async (options) => {
   try {
     const transporter = createTransporter();
@@ -39,7 +39,7 @@ const sendEmail = async (options) => {
   }
 };
 
-// Email templates
+
 const emailTemplates = {
   welcome: (name) => ({
     subject: 'Welcome to Saarthi Real Estate',

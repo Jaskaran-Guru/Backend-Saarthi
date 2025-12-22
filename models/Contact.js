@@ -6,8 +6,8 @@ const contactSchema = new mongoose.Schema({
   phone: { type: String },
   subject: { type: String },
   message: { type: String, required: true },
-  propertyInterest: { type: String }, // Optional field for property interest
+  propertyInterest: { type: String }, 
   createdAt: { type: Date, default: Date.now }
-}, { strict: false }); // Strict false rakha hai taaki future mein extra fields bhej sako
+}, { strict: false }); 
 
 module.exports = mongoose.model('Contact', contactSchema);

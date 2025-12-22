@@ -1,19 +1,19 @@
 const mongoose = require('mongoose');
 
 const propertySchema = new mongoose.Schema({
-  // Basic Info
+  
   title: { type: String, required: true },
   description: { type: String },
-  propertyType: { type: String }, // Made optional
-  listingType: { type: String },  // Made optional
+  propertyType: { type: String }, 
+  listingType: { type: String }, 
 
-  // Location (Accepts both flat and nested structure)
+  
   address: { type: String },
   city: { type: String },
   state: { type: String },
   pincode: { type: String },
   locality: { type: String },
-  location: { type: Object }, // Catch-all for nested location
+  location: { type: Object }, 
 
   // Specs
   bedrooms: { type: mongoose.Schema.Types.Mixed }, // Accepts "2" or 2
@@ -26,25 +26,22 @@ const propertySchema = new mongoose.Schema({
   floor: { type: mongoose.Schema.Types.Mixed },
   totalFloors: { type: mongoose.Schema.Types.Mixed },
 
-  // Pricing
   price: { type: Number, required: true },
   pricePerSqft: { type: Number },
   maintenanceCharges: { type: Number },
   priceNegotiable: { type: Boolean, default: false },
 
-  // Amenities
   amenities: [{ type: String }],
 
-  // Additional
+
   yearBuilt: { type: mongoose.Schema.Types.Mixed },
   possession: { type: String },
   parkingSpaces: { type: mongoose.Schema.Types.Mixed },
 
-  // Owner Info (Handling both structures)
   ownerName: { type: String },
   ownerPhone: { type: String },
   ownerEmail: { type: String },
-  owner: { type: Object }, // Catch-all for nested owner object
+  owner: { type: Object }, 
 
   // Images
   images: [{ type: String }], 
@@ -52,6 +49,6 @@ const propertySchema = new mongoose.Schema({
   // Meta
   status: { type: String, default: 'active' },
   createdAt: { type: Date, default: Date.now }
-}, { strict: false }); // <--- YE SABSE IMPORTANT HAI: Allows extra fields!
+}, { strict: false });
 
 module.exports = mongoose.model('Property', propertySchema);
