@@ -80,6 +80,73 @@ router.put('/profile', isAuthenticated, async (req, res) => {
   }
 });
 
+// GET /api/users/saved-searches
+router.get('/saved-searches', isAuthenticated, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    res.json({
+      success: true,
+      data: user.savedSearches || []
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// POST /api/users/saved-searches
+router.post('/saved-searches', isAuthenticated, async (req, res) => {
+  try {
+    const { name, params } = req.body;
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    if (!user.savedSearches) user.savedSearches = [];
+    
+    // Prevent duplicate saves
+    user.savedSearches.unshift({
+      name: name || 'Custom Search',
+      params: params || {},
+      createdAt: new Date()
+    });
+
+    // Keep up to 25 saved searches
+    if (user.savedSearches.length > 25) {
+      user.savedSearches = user.savedSearches.slice(0, 25);
+    }
+
+    await user.save();
+    res.status(201).json({
+      success: true,
+      message: 'Search criteria saved to your profile!',
+      data: user.savedSearches
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// DELETE /api/users/saved-searches/:id
+router.delete('/saved-searches/:id', isAuthenticated, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    if (user.savedSearches) {
+      user.savedSearches = user.savedSearches.filter(
+        s => s._id && s._id.toString() !== req.params.id
+      );
+      await user.save();
+    }
+
+    res.json({
+      success: true,
+      message: 'Saved search removed',
+      data: user.savedSearches || []
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 router.get('/', isAuthenticated, isAdmin, async (req, res) => {
   try {

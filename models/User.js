@@ -46,6 +46,11 @@ const userSchema = new mongoose.Schema({
     notifications: { type: Boolean, default: true },
     newsletter: { type: Boolean, default: true }
   },
+  savedSearches: [{
+    name: { type: String, default: 'Custom Search' },
+    params: { type: Object, default: {} },
+    createdAt: { type: Date, default: Date.now }
+  }],
   lastLogin: {
     type: Date,
     default: Date.now
@@ -55,11 +60,10 @@ const userSchema = new mongoose.Schema({
     default: true
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  strict: false
 });
 
 
-userSchema.index({ googleId: 1 });
-userSchema.index({ email: 1 });
 
 module.exports = mongoose.model('User', userSchema);
